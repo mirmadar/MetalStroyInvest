@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model Category {
+  categoryId Int       @id @default(autoincrement())
+  name       String
+  level      Int
+
+  parentId   Int?
+  parent     Category? @relation("CategoryHierarchy", fields: [parentId], references: [categoryId])
+  children   Category[] @relation("CategoryHierarchy")
+
+  products   Product[]   @relation("CategoryProducts")
+
+  @@map("categories")
+}
+
+model Product {
+  productId  Int      @id @default(autoincrement())
+  name       String
+  price      Decimal  @db.Decimal(10, 2)
+  imageUrl   String
+  categoryId Int
+  category   Category @relation("CategoryProducts", fields: [categoryId], references: [categoryId])
+
+  characteristics ProductCharacteristic[]
+
+  @@map("products")
+}
+
+model CharacteristicName {
+  characteristicNameId Int    @id @default(autoincrement())
+  name                 String
+
+  productCharacteristics ProductCharacteristic[]
+
+  @@map("characteristics_names_list")
+}
+
+model ProductCharacteristic {
+  productCharacteristicId Int              @id @default(autoincrement())
+  productId               Int
+  characteristicNameId    Int
+  value                   String
+  valueType               ValueType
+
+  product                Product            @relation(fields: [productId], references: [productId])
+  characteristicName     CharacteristicName @relation(fields: [characteristicNameId], references: [characteristicNameId])
+
+  @@map("product_characteristics")
+}
+
+enum ValueType {
+  number
+  text
+}
+
+        
