@@ -12,6 +12,7 @@ model Category {
   categoryId Int       @id @default(autoincrement())
   name       String
   level      Int
+  imageUrl   String?
 
   parentId   Int?
   parent     Category? @relation("CategoryHierarchy", fields: [parentId], references: [categoryId])
@@ -26,9 +27,10 @@ model Product {
   productId  Int      @id @default(autoincrement())
   name       String
   price      Decimal  @db.Decimal(10, 2)
-  imageUrl   String
+  imageUrl   String?
   categoryId Int
   category   Category @relation("CategoryProducts", fields: [categoryId], references: [categoryId])
+  isNew      Boolean? @default(false)
 
   characteristics ProductCharacteristic[]
 
