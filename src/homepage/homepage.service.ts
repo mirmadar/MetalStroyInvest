@@ -3,7 +3,6 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class HomepageService {
- 
   constructor(private prisma: PrismaService) {}
 
   async getHomepage() {
@@ -12,9 +11,9 @@ export class HomepageService {
         parentId: null, // мб надо сделать через level
       },
       take: 4,
-    //   orderBy: {
-    //     name: 'asc',
-    //   },
+      //   orderBy: {
+      //     name: 'asc',
+      //   },
       select: {
         categoryId: true,
         name: true,
