@@ -26,7 +26,7 @@ model Category {
 model Product {
   productId  Int      @id @default(autoincrement())
   name       String
-  price      Decimal  @db.Decimal(10, 2)
+  price      Float
   imageUrl   String?
   categoryId Int
   category   Category @relation("CategoryProducts", fields: [categoryId], references: [categoryId])
