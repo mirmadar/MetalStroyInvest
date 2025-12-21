@@ -64,4 +64,21 @@ enum ValueType {
   text
 }
 
-        
+model User {
+  userId    Int      @id @default(autoincrement())
+  email     String   @unique
+  username  String   @unique
+  password  String
+  roles     Role[]   @relation("UserRoles")  // прямая связь многие-ко-многим
+  
+  @@map("users")
+}
+
+model Role {
+  roleId      Int     @id @default(autoincrement())
+  value       String  @unique
+  description String
+  users       User[]  @relation("UserRoles")  // обратная связь
+  
+  @@map("roles")
+}
