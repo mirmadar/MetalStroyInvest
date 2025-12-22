@@ -1,22 +1,29 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { RolesService } from 'src/roles/roles.service';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UsersService {
 
     constructor(private prisma: PrismaService, private roleService: RolesService) {}
 
-    async createUser(dto: CreateUserDto){
+    async createUser(userDto: CreateUserDto){
+
+        const candidate = await this.findUserByEmailOrUsername(userDto.email, userDto.username)
+        if(candidate){
+            throw new HttpException('Пользователь с таким именем или email уже существует', HttpStatus.BAD_REQUEST)
+        }
+        const hashPassword = await bcrypt.hash(userDto.password, 5);
         
         const role = await this.roleService.getRoleByValue("ADMIN")
 
         const user = await this.prisma.user.create({
             data: {
-                email: dto.email,
-                username: dto.username,
-                password: dto.password,
+                email: userDto.email,
+                username: userDto.username,
+                password: hashPassword,
                 roles: {
                     connect: {
                         roleId: role?.roleId,

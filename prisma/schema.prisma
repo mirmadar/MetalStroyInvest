@@ -7,78 +7,75 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model Category {
-  categoryId Int       @id @default(autoincrement())
-  name       String
+  categoryId Int        @id @default(autoincrement())
+  name       String     @unique                  // мб @@unique([parentId, name])
   level      Int
-  imageUrl   String?
-
   parentId   Int?
-  parent     Category? @relation("CategoryHierarchy", fields: [parentId], references: [categoryId])
+  imageUrl   String?
+  parent     Category?  @relation("CategoryHierarchy", fields: [parentId], references: [categoryId])
   children   Category[] @relation("CategoryHierarchy")
-
-  products   Product[]   @relation("CategoryProducts")
+  products   Product[]  @relation("CategoryProducts")
 
   @@map("categories")
 }
 
 model Product {
-  productId  Int      @id @default(autoincrement())
-  name       String
-  price      Float
-  imageUrl   String?
-  categoryId Int
-  category   Category @relation("CategoryProducts", fields: [categoryId], references: [categoryId])
-  isNew      Boolean? @default(false)
-
+  productId       Int                     @id @default(autoincrement())
+  name            String
+  price           Float
+  imageUrl        String?
+  categoryId      Int
+  isNew           Boolean?                @default(false)
   characteristics ProductCharacteristic[]
+  category        Category                @relation("CategoryProducts", fields: [categoryId], references: [categoryId])
 
+  @@index([name])
+  @@index([price])
   @@map("products")
 }
 
 model CharacteristicName {
-  characteristicNameId Int    @id @default(autoincrement())
-  name                 String
-
+  characteristicNameId   Int                     @id @default(autoincrement())
+  name                   String                  @unique
   productCharacteristics ProductCharacteristic[]
 
   @@map("characteristics_names_list")
 }
 
 model ProductCharacteristic {
-  productCharacteristicId Int              @id @default(autoincrement())
+  productCharacteristicId Int                @id @default(autoincrement())
   productId               Int
   characteristicNameId    Int
   value                   String
   valueType               ValueType
+  characteristicName      CharacteristicName @relation(fields: [characteristicNameId], references: [characteristicNameId])
+  product                 Product            @relation(fields: [productId], references: [productId])
 
-  product                Product            @relation(fields: [productId], references: [productId])
-  characteristicName     CharacteristicName @relation(fields: [characteristicNameId], references: [characteristicNameId])
-
+  @@unique([productId, characteristicNameId])
   @@map("product_characteristics")
+}
+
+model User {
+  userId   Int    @id @default(autoincrement())
+  email    String @unique
+  username String @unique
+  password String
+  roles    Role[] @relation("UserRoles")
+
+  @@map("users")
+}
+
+model Role {
+  roleId      Int    @id @default(autoincrement())
+  value       String @unique
+  description String 
+  users       User[] @relation("UserRoles")
+
+  @@map("roles")
 }
 
 enum ValueType {
   number
   text
-}
-
-model User {
-  userId    Int      @id @default(autoincrement())
-  email     String   @unique
-  username  String   @unique
-  password  String
-  roles     Role[]   @relation("UserRoles")  // прямая связь многие-ко-многим
-  
-  @@map("users")
-}
-
-model Role {
-  roleId      Int     @id @default(autoincrement())
-  value       String  @unique
-  description String
-  users       User[]  @relation("UserRoles")  // обратная связь
-  
-  @@map("roles")
 }

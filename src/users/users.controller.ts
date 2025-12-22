@@ -3,18 +3,17 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { Controller, Post, Body, Get, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
-@Controller('users')
+@Controller('admin')
+@UseGuards(JwtAuthGuard)
 export class UsersController {
 
     constructor(private userService: UsersService){}
 
-    @Post()
-    // @UsePipes(ValidationPipe)
+    @Post('/create-admin')
     create(@Body() userDto: CreateUserDto) {
         return this.userService.createUser(userDto);
     }
 
-    @UseGuards(JwtAuthGuard) // к чему закрываем доступ неавторизованным пользователям
     @Get()
     getAll(){
         return this.userService.getAllUsers();
