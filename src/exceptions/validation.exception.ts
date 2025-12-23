@@ -1,10 +1,7 @@
-import { HttpException, HttpStatus } from "@nestjs/common";
+import { HttpException, HttpStatus } from '@nestjs/common';
 
-export class ValidationException extends HttpException{
-    messages;
-
-    constructor(response) {
-        super(response, HttpStatus.BAD_REQUEST);
-        this.message = response
-    }
+export class ValidationException extends HttpException {
+  constructor(public readonly messages: Record<string, string>) {
+    super(messages, HttpStatus.BAD_REQUEST);
+  }
 }
