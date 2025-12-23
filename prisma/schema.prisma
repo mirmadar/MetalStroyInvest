@@ -57,11 +57,12 @@ model ProductCharacteristic {
 }
 
 model User {
-  userId   Int    @id @default(autoincrement())
-  email    String @unique
-  username String @unique
-  password String
-  roles    Role[] @relation("UserRoles")
+  userId     Int       @id @default(autoincrement())
+  email      String    @unique
+  username   String    @unique
+  password   String
+  isActive   Boolean   @default(true)
+  roles      Role[]    @relation("UserRoles")
 
   @@map("users")
 }
