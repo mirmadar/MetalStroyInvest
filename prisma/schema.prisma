@@ -34,6 +34,9 @@ model Product {
 
   characteristics ProductCharacteristic[]
 
+  @@index([name])
+  @@index([price])
+
   @@map("products")
 }
 
