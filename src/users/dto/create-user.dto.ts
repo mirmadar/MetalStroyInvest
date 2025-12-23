@@ -1,4 +1,4 @@
-import {IsEmail, IsString, Length, Matches} from "class-validator";
+import {IsBoolean, IsEmail, IsString, Length, Matches} from "class-validator";
 
 export class CreateUserDto{
     @IsString({message: "email должен быть строкой"})

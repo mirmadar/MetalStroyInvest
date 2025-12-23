@@ -64,7 +64,9 @@ export class UsersService {
             }
         });
 
-        if (!user) return null;
+        if (!user) {
+            throw new HttpException('Пользователь не найден', HttpStatus.NOT_FOUND);
+        }
 
         return user;
         }
@@ -148,16 +150,6 @@ async updatePassword(userId: number, passwordDto: UpdatePasswordDto) {
         });
 
     return updatedUser;
-  }
-  
-  async deactivateUser(userId: number){
-    await this.getUserOrFail(userId);
-
-    await this.prisma.user.update({
-        where: { userId },
-        data: { isActive: false }
-    });
-    return { message: 'Пользователь диактивирован'};
   }
 
   async deleteUser(userId: number){

@@ -61,7 +61,6 @@ model User {
   email      String    @unique
   username   String    @unique
   password   String
-  isActive   Boolean   @default(true)
   roles      Role[]    @relation("UserRoles")
 
   @@map("users")

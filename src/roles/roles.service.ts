@@ -14,7 +14,7 @@ export class RolesService {
         });
 
         if(existingRole) {
-            throw new HttpException(`Роль "{roleDto.value}" уже существует`, HttpStatus.BAD_REQUEST);
+            throw new HttpException(`Роль "${roleDto.value}" уже существует`, HttpStatus.BAD_REQUEST);
         }
         
         const role = await this.prisma.role.create({

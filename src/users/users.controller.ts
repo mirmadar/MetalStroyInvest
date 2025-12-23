@@ -52,13 +52,6 @@ export class UsersController {
         return updatedUser;
     }
 
-    @Patch(':id/diactivate')
-    @Roles('SUPER_ADMIN')
-    async deactivateUser(@Param('id') id: string){
-        const userId = parseInt(id);
-        return this.userService.deactivateUser(userId);
-    }
-
     @Patch('me/password')
     async changePassword(
         @CurrentUser() user: JwtPayload,
