@@ -30,7 +30,7 @@ export class UsersController {
 
   @Get('me')
   async getMyProfile(@CurrentUser() user: JwtPayload) {
-    return this.userService.getUserById(user.id);
+    return this.userService.getUserById(user.userId);
   }
 
   @Get(':id')
@@ -53,7 +53,7 @@ export class UsersController {
 
   @Patch('me/password')
   async changePassword(@CurrentUser() user: JwtPayload, @Body() passwordDto: UpdatePasswordDto) {
-    return this.userService.updatePassword(user.id, passwordDto);
+    return this.userService.updatePassword(user.userId, passwordDto);
   }
 
   //DELETE
