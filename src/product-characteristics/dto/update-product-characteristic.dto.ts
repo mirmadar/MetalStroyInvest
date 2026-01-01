@@ -1,6 +1,9 @@
+import { IsNumber, IsNotEmpty } from 'class-validator';
+
 export class UpdateProductCharacteristicDto {
-  id?: number; // вот это поле нужно
-  name: string;
-  value: string;
-  valueType: 'number' | 'text';
+  @IsNumber({}, { message: 'ID характеристики должен быть числом' })
+  readonly id: number;
+
+  @IsNotEmpty({ message: 'Значение характеристики обязательно' })
+  readonly value: string | number; // number или string
 }

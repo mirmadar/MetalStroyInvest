@@ -25,10 +25,10 @@ model Product {
   name            String
   price           Float
   imageUrl        String?
-  categoryId      Int
+  categoryId      Int?
   isNew           Boolean?                @default(false)
   characteristics ProductCharacteristic[]
-  category        Category                @relation("CategoryProducts", fields: [categoryId], references: [categoryId])
+  category        Category?               @relation("CategoryProducts", fields: [categoryId], references: [categoryId])
 
   @@index([name])
   @@index([price])

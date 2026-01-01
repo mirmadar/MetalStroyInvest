@@ -1,6 +1,7 @@
-import { IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class UpdateCharacteristicNameDto {
+  @IsOptional()
   @IsString({ message: 'Название характеристики должно быть строкой' })
-  readonly name: string;
+  readonly name?: string;
 }

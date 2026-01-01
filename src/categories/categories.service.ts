@@ -1,25 +1,25 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import { CategoryPathItemDto } from './dto/category-path-item.dto';
-import { Category } from '@prisma/client';
 
 @Injectable()
 export class CategoriesService {
   constructor(private prisma: PrismaService) {}
 
-  // ==========================
-  // CREATE
-  // ==========================
-  async create(dto: CreateCategoryDto) {
+  async createCategory(dto: CreateCategoryDto) {
     let level = 0;
+
     if (dto.parentId) {
       const parent = await this.prisma.category.findUnique({
         where: { categoryId: dto.parentId },
         select: { level: true },
       });
-      if (!parent) throw new NotFoundException('Parent category not found');
+
+      if (!parent) {
+        throw new HttpException('Родительская категория не найдена', HttpStatus.NOT_FOUND);
+      }
+
       level = parent.level + 1;
     }
 
@@ -35,60 +35,24 @@ export class CategoriesService {
     return category;
   }
 
-  // ==========================
-  // UPDATE
-  // ==========================
-  async update(id: number, dto: UpdateCategoryDto) {
-    let level: number | undefined = undefined;
-    if (dto.parentId) {
-      const parent = await this.prisma.category.findUnique({
-        where: { categoryId: dto.parentId },
-        select: { level: true },
-      });
-      if (!parent) throw new NotFoundException('Parent category not found');
-      level = parent.level + 1;
-    }
-
-    const category = await this.prisma.category.update({
-      where: { categoryId: id },
-      data: {
-        name: dto.name,
-        parentId: dto.parentId,
-        imageUrl: dto.imageUrl,
-        ...(level !== undefined ? { level } : {}),
-      },
+  async getAllCategories() {
+    const categories = await this.prisma.category.findMany({
+      orderBy: { level: 'asc', name: 'asc' },
     });
 
-    return category;
+    return categories;
   }
 
-  // ==========================
-  // FIND ONE + CATEGORY PATH
-  // ==========================
-  async findOne(id: number) {
+  async getCategoryById(categoryId: number) {
     const category = await this.prisma.category.findUnique({
-      where: { categoryId: id },
+      where: { categoryId },
     });
-    if (!category) throw new NotFoundException('Category not found');
 
-    const path: CategoryPathItemDto[] = [];
-
-    // current может быть null
-    let current: Category | null = category;
-
-    while (current) {
-      path.unshift({
-        id: current.categoryId,
-        name: current.name,
-        imageUrl: current.imageUrl ?? undefined,
-      });
-
-      if (!current.parentId) break;
-
-      current = await this.prisma.category.findUnique({
-        where: { categoryId: current.parentId },
-      });
+    if (!category) {
+      throw new HttpException('Категория не найдена', HttpStatus.NOT_FOUND);
     }
+
+    const path = await this.findPath(categoryId);
 
     return {
       ...category,
@@ -96,23 +60,70 @@ export class CategoriesService {
     };
   }
 
-  // ==========================
-  // FIND ALL
-  // ==========================
-  async findAll() {
-    return this.prisma.category.findMany({
-      orderBy: { level: 'asc', name: 'asc' },
+  async updateCategory(categoryId: number, dto: UpdateCategoryDto) {
+    await this.getCategoryOrFail(categoryId);
+
+    const updateData: {
+      name?: string;
+      parentId?: number | null;
+      imageUrl?: string | null;
+      level?: number;
+    } = {};
+
+    if (dto.name !== undefined) {
+      updateData.name = dto.name;
+    }
+
+    if (dto.imageUrl !== undefined) {
+      updateData.imageUrl = dto.imageUrl;
+    }
+
+    if (dto.parentId !== undefined) {
+      if (dto.parentId === null) {
+        updateData.parentId = null;
+        updateData.level = 0;
+      } else {
+        const parent = await this.prisma.category.findUnique({
+          where: { categoryId: dto.parentId },
+          select: { level: true },
+        });
+
+        if (!parent) {
+          throw new HttpException('Родительская категория не найдена', HttpStatus.NOT_FOUND);
+        }
+
+        updateData.parentId = dto.parentId;
+        updateData.level = parent.level + 1;
+      }
+    }
+
+    const updatedCategory = await this.prisma.category.update({
+      where: { categoryId },
+      data: updateData,
     });
+
+    return updatedCategory;
   }
 
-  // Метод для построения полного пути категории
-  async findPath(categoryId: number): Promise<CategoryPathItemDto[]> {
-    const path: CategoryPathItemDto[] = [];
+  async deleteCategory(categoryId: number) {
+    await this.getCategoryOrFail(categoryId);
+
+    await this.prisma.category.delete({
+      where: { categoryId },
+    });
+
+    return { message: 'Категория удалена' };
+  }
+
+  async findPath(categoryId: number) {
+    const path: Array<{ id: number; name: string; imageUrl?: string }> = [];
     let current = await this.prisma.category.findUnique({
       where: { categoryId },
     });
 
-    if (!current) throw new NotFoundException('Category not found');
+    if (!current) {
+      throw new HttpException('Категория не найдена', HttpStatus.NOT_FOUND);
+    }
 
     while (current) {
       path.unshift({
@@ -131,12 +142,16 @@ export class CategoriesService {
     return path;
   }
 
-  // ==========================
-  // DELETE
-  // ==========================
-  async remove(id: number) {
-    return this.prisma.category.delete({
-      where: { categoryId: id },
+  async getCategoryOrFail(categoryId: number) {
+    const category = await this.prisma.category.findUnique({
+      where: { categoryId },
+      select: { categoryId: true },
     });
+
+    if (!category) {
+      throw new HttpException('Категория не найдена', HttpStatus.NOT_FOUND);
+    }
+
+    return category;
   }
 }

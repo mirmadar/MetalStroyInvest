@@ -14,8 +14,12 @@ export class ValidationPipe implements PipeTransform {
       return value;
     }
 
+    if (value == null || typeof value !== 'object') {
+      return value;
+    }
+
     const metatype = metadata.metatype as ClassConstructor<unknown>;
-    const object: unknown = plainToInstance(metatype, value as Record<string, unknown>);
+    const object = plainToInstance(metatype, value);
     const errors: ValidationError[] = await validate(object as object);
 
     if (errors.length > 0) {
@@ -28,18 +32,24 @@ export class ValidationPipe implements PipeTransform {
 
   private toValidate(metatype: unknown): boolean {
     const types: unknown[] = [String, Boolean, Number, Array, Object];
-    return !types.includes(metatype);
+    return !!metatype && !types.includes(metatype);
   }
 
   private buildErrorMessages(errors: ValidationError[]): Record<string, string> {
-    return errors.reduce(
-      (acc, err) => {
+    const result: Record<string, string> = {};
+
+    const flatten = (errs: ValidationError[]) => {
+      errs.forEach((err) => {
         if (err.constraints) {
-          acc[err.property] = Object.values(err.constraints).join(', ');
+          result[err.property] = Object.values(err.constraints).join(', ');
         }
-        return acc;
-      },
-      {} as Record<string, string>,
-    );
+        if (err.children && err.children.length > 0) {
+          flatten(err.children);
+        }
+      });
+    };
+
+    flatten(errors);
+    return result;
   }
 }
