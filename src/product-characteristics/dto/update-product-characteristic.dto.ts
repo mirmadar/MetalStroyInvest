@@ -5,5 +5,5 @@ export class UpdateProductCharacteristicDto {
   readonly id: number;
 
   @IsNotEmpty({ message: 'Значение характеристики обязательно' })
-  readonly value: string | number; // number или string
+  readonly value: string | number;
 }

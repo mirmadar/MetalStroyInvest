@@ -12,13 +12,16 @@ export class CharacteristicNamesService {
     await this.ensureNameUnique(dto.name);
 
     return this.prisma.characteristicName.create({
-      data: { name: dto.name.trim() },
+      data: { name: dto.name.trim(), valueType: dto.valueType },
     });
   }
 
   // Получение всех названий характеристик
   async getAllCharacteristicNames() {
-    return this.prisma.characteristicName.findMany({ orderBy: { name: 'asc' } });
+    return this.prisma.characteristicName.findMany({
+      select: { name: true, valueType: true },
+      orderBy: { name: 'asc' },
+    });
   }
 
   // Получение названия характеристики по ID
@@ -30,15 +33,20 @@ export class CharacteristicNamesService {
   async updateCharacteristicName(id: number, dto: UpdateCharacteristicNameDto) {
     await this.getCharacteristicNameOrFail(id);
 
-    if (!dto.name) {
-      throw new BadRequestException('Название характеристики обязательно для обновления');
+    const updateData: { name?: string; valueType?: 'number' | 'text' } = {};
+
+    if (dto.name) {
+      await this.ensureNameUnique(dto.name, id);
+      updateData.name = dto.name.trim();
     }
 
-    await this.ensureNameUnique(dto.name, id);
+    if (dto.valueType) {
+      updateData.valueType = dto.valueType;
+    }
 
     return this.prisma.characteristicName.update({
       where: { characteristicNameId: id },
-      data: { name: dto.name.trim() },
+      data: updateData,
     });
   }
 

@@ -20,8 +20,7 @@ export class ProductCharacteristicsService {
       select: {
         productCharacteristicId: true,
         value: true,
-        valueType: true,
-        characteristicName: { select: { name: true } },
+        characteristicName: { select: { name: true, valueType: true } },
       },
       orderBy: { productCharacteristicId: 'asc' },
     });
@@ -30,7 +29,7 @@ export class ProductCharacteristicsService {
       id: c.productCharacteristicId,
       name: c.characteristicName.name,
       value: c.value,
-      valueType: c.valueType,
+      valueType: c.characteristicName.valueType,
     }));
   }
 
@@ -55,7 +54,6 @@ export class ProductCharacteristicsService {
             productId,
             characteristicNameId: charName.characteristicNameId,
             value: String(item.value),
-            valueType: typeof item.value === 'number' ? 'number' : 'text',
           },
         });
       } catch (error) {
@@ -79,10 +77,9 @@ export class ProductCharacteristicsService {
 
     for (const item of items) {
       try {
-        const valueType = typeof item.value === 'number' ? 'number' : 'text';
         await prisma.productCharacteristic.update({
           where: { productCharacteristicId: item.id },
-          data: { value: String(item.value), valueType },
+          data: { value: String(item.value) },
         });
       } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
@@ -115,12 +112,10 @@ export class ProductCharacteristicsService {
         productId,
         characteristicNameId: charName.characteristicNameId,
         value: String(dto.value),
-        valueType: typeof dto.value === 'number' ? 'number' : 'text',
       },
       select: {
         productCharacteristicId: true,
         value: true,
-        valueType: true,
         characteristicName: { select: { name: true } },
       },
     });
@@ -129,7 +124,6 @@ export class ProductCharacteristicsService {
       id: created.productCharacteristicId,
       name: created.characteristicName.name,
       value: created.value,
-      valueType: created.valueType,
     };
   }
 
@@ -142,7 +136,6 @@ export class ProductCharacteristicsService {
       select: {
         productCharacteristicId: true,
         value: true,
-        valueType: true,
         characteristicName: { select: { name: true } },
       },
     });
@@ -155,7 +148,6 @@ export class ProductCharacteristicsService {
       id: updated.productCharacteristicId,
       name: updated.characteristicName.name,
       value: updated.value,
-      valueType: updated.valueType,
     };
   }
 
